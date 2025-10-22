@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>FB Auto Liker & Commenter</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 380px;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        overflow: hidden;
+      }
+
+      .header {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .header h1 {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .header .subtitle {
+        font-size: 12px;
+        opacity: 0.9;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .input-group {
+        margin-bottom: 16px;
+      }
+
+      .input-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        opacity: 0.95;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.95);
+        color: #333;
+        transition: all 0.3s ease;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: #4caf50;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+      }
+
+      .button-group {
+        display: flex;
+        gap: 12px;
+      }
+
+      button {
+        flex: 1;
+        padding: 14px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      #startBtn {
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        color: white;
+      }
+
+      #startBtn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      #startBtn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      #startBtn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      #stopBtn {
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        color: white;
+      }
+
+      #stopBtn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      #stopBtn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      #stopBtn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .status {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        font-size: 13px;
+        margin-bottom: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .status.ready {
+        background: rgba(76, 175, 80, 0.3);
+        border: 1px solid rgba(76, 175, 80, 0.5);
+      }
+
+      .status.running {
+        background: rgba(255, 152, 0, 0.3);
+        border: 1px solid rgba(255, 152, 0, 0.5);
+        animation: pulse 2s infinite;
+      }
+
+      .status.stopped {
+        background: rgba(244, 67, 54, 0.3);
+        border: 1px solid rgba(244, 67, 54, 0.5);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      .progress-container {
+        margin-bottom: 16px;
+        display: none;
+      }
+
+      .progress-container.active {
+        display: block;
+      }
+
+      .progress-bar {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        height: 20px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .progress-fill {
+        background: linear-gradient(90deg, #4caf50, #45a049);
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      .progress-text {
+        text-align: center;
+        font-size: 12px;
+        margin-top: 6px;
+        opacity: 0.9;
+        font-weight: 500;
+      }
+
+      .logs {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        padding: 12px;
+        max-height: 150px;
+        overflow-y: auto;
+        font-family: "Courier New", monospace;
+        font-size: 11px;
+        line-height: 1.5;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .logs::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .logs::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      .logs::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
+
+      .logs::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.4);
+      }
+
+      .log-entry {
+        margin-bottom: 4px;
+        opacity: 0.9;
+      }
+
+      .workflow {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 11px;
+      }
+
+      .workflow-title {
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 12px;
+      }
+
+      .workflow ol {
+        padding-left: 20px;
+        opacity: 0.9;
+      }
+
+      .workflow li {
+        margin-bottom: 4px;
+        line-height: 1.5;
+      }
+
+      .emoji {
+        font-style: normal;
+        margin-right: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>
+        <span>👍💬</span>
+        <span>FB Auto Liker & Commenter</span>
+      </h1>
+      <div class="subtitle">Auto Like + Comment with Modal</div>
+    </div>
+
+    <div class="container">
+      <!-- Status -->
+      <div class="status ready" id="status">✓ Ready to start</div>
+
+      <!-- Progress -->
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+        <div class="progress-text" id="progressText">0 / 0 completed</div>
+      </div>
+
+      <!-- Input -->
+      <div class="card">
+        <div class="input-group">
+          <label for="postCount">📝 Number of Posts:</label>
+          <input type="number" id="postCount" value="10" min="1" max="100" />
+        </div>
+
+        <!-- Buttons -->
+        <div class="button-group">
+          <button id="startBtn">
+            <span>▶️</span>
+            <span>Start</span>
+          </button>
+          <button id="stopBtn" disabled>
+            <span>⏹️</span>
+            <span>Stop</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Workflow -->
+      <div class="card workflow">
+        <div class="workflow-title">🔄 Automation Workflow:</div>
+        <ol>
+          <li><span class="emoji">⬇️</span>Scroll to find posts</li>
+          <li><span class="emoji">👍</span>Click Like button</li>
+          <li><span class="emoji">⏸️</span>Wait 3 seconds</li>
+          <li><span class="emoji">💬</span>Click comment to open modal</li>
+          <li><span class="emoji">⌨️</span>Type "nice and attractive"</li>
+          <li><span class="emoji">📤</span>Click Send button</li>
+          <li><span class="emoji">❌</span>Close modal with X</li>
+          <li><span class="emoji">⏩</span>Skip 2 posts</li>
+          <li><span class="emoji">🔄</span>Repeat process</li>
+        </ol>
+      </div>
+
+      <!-- Logs -->
+      <div class="card">
+        <div class="workflow-title">📋 Activity Logs:</div>
+        <div class="logs" id="logs">
+          <div class="log-entry">Waiting to start...</div>
+        </div>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
